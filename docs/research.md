@@ -13,6 +13,8 @@ Reviewed primary project pages:
 
 None of these reviewed tools describes the exact combination of installed-package peer checks and read-only API evidence reports. No exact substitute was identified in the bounded search. They remain complementary tools. lintpreflight does not include their source or designs.
 
+The correction round repeated the bounded search and also reviewed [eslint10-matrix](https://github.com/Booyaka101/eslint10-matrix), consulted October 28, 2026. It addresses ESLint 10 readiness with an execution matrix and a local scan that runs installed plugins against source files. That is a related runtime investigation tool. Its documented approach differs from this offline report of peer ranges and static package/file/line candidates without executing plugins. No code or design was taken from it.
+
 The demand signal is https://github.com/jsx-eslint/eslint-plugin-react/issues/3977. The brief recorded 357 thumbs-up reactions on October 28; votes concern compatibility upstream, not willingness to adopt this product. The issue documents contextOrFilename.getFilename failing during rule loading.
 
 Technical source: https://eslint.org/docs/latest/use/migrate-to-10.0.0, consulted October 28, 2026. The context and SourceCode removal sections define the supported subset and replacements. The versioned module is the sole detector table.

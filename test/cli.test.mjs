@@ -115,6 +115,78 @@ test('metadata discovers custom parser and nested config dependencies', async t 
   assert.ok(report.packages.some(pkg => pkg.installedPath === 'node_modules/eslint-config-team/node_modules/eslint-plugin-nested'));
 });
 
+test('author devDependencies do not change the installed-package report', async t => {
+  const root = await fixture(t);
+  const dir = await plugin(root);
+  const before = run(root);
+  assert.equal(before.status, 0);
+  const file = path.join(dir, 'package.json');
+  const meta = JSON.parse(await fs.readFile(file, 'utf8'));
+  meta.devDependencies = {
+    'eslint-plugin-solo-desarrollo': '*',
+    '@scope/eslint-config-author': '*',
+    'author-build-tool': '*',
+    ...Object.fromEntries(Array.from({ length: limits.packages + 1 }, (_, i) => [`eslint-plugin-author-${i}`, '*']))
+  };
+  await fs.writeFile(file, JSON.stringify(meta));
+  const after = run(root);
+  assert.equal(after.status, 0);
+  assert.deepEqual(after.report, before.report);
+  assert.deepEqual(after.report.warnings, []);
+});
+
+test('installed author-only development tools are outside discovery', async t => {
+  const root = await fixture(t);
+  const dir = await plugin(root);
+  const file = path.join(dir, 'package.json');
+  const meta = JSON.parse(await fs.readFile(file, 'utf8'));
+  meta.devDependencies = { 'eslint-plugin-author': '*', 'author-parser': '*' };
+  await fs.writeFile(file, JSON.stringify(meta));
+  await plugin(dir, 'eslint-plugin-author', '^9', 'ctx.getFilename();');
+  await plugin(root, 'author-parser', '^9', 'ctx.getFilename();');
+  const { report, status } = run(root);
+  assert.equal(status, 0);
+  assert.deepEqual(report.packages.map(pkg => pkg.name), ['eslint-plugin-example']);
+  assert.deepEqual(report.warnings, []);
+});
+
+test('project devDependencies still discover installed blockers', async t => {
+  const root = await fixture(t, { '@scope/eslint-plugin-project': '*' });
+  await plugin(root, '@scope/eslint-plugin-project', '^9', 'context.getFilename();');
+  const { report, status } = run(root);
+  assert.equal(status, 1);
+  assert.deepEqual(report.packages[0].statuses, ['peer-blocked', 'api-candidate']);
+});
+
+for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) test(`installed ${field} still discover runtime blockers`, async t => {
+  const root = await fixture(t);
+  const dir = await plugin(root);
+  const file = path.join(dir, 'package.json');
+  const meta = JSON.parse(await fs.readFile(file, 'utf8'));
+  const name = '@scope/eslint-plugin-runtime';
+  meta[field] = { ...meta[field], [name]: '*' };
+  meta.devDependencies = { [name]: '*', 'eslint-plugin-uninstalled-author': '*' };
+  await fs.writeFile(file, JSON.stringify(meta));
+  await plugin(field === 'dependencies' ? dir : root, name, '^9', 'ctx.getFilename();');
+  const { report, status } = run(root);
+  assert.equal(status, 1);
+  assert.equal(report.packages.length, 2);
+  assert.deepEqual(report.warnings, []);
+  assert.deepEqual(report.packages.find(pkg => pkg.name === name).statuses, ['peer-blocked', 'api-candidate']);
+});
+
+test('missing declared runtime dependency remains unknown', async t => {
+  const root = await fixture(t);
+  const dir = await plugin(root);
+  const file = path.join(dir, 'package.json');
+  const meta = JSON.parse(await fs.readFile(file, 'utf8'));
+  meta.dependencies = { 'eslint-plugin-runtime-missing': '*' };
+  await fs.writeFile(file, JSON.stringify(meta));
+  const { report, status } = run(root);
+  assert.equal(status, 2);
+  assert.ok(report.packages.find(pkg => pkg.name === 'eslint-plugin-runtime-missing').statuses.includes('unknown'));
+});
+
 test('both blockers coexist and take precedence over unknown', async t => {
   const root = await fixture(t);
   await plugin(root, undefined, '^9', 'context.getFilename();\n');

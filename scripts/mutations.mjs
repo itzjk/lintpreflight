@@ -6,7 +6,9 @@ const root = new URL('../', import.meta.url);
 for (const [name, file, before, after, testName] of [
   ['removed API detector', 'lib/detect.mjs', "Object.hasOwn(migration.members, name)", 'false', 'synthetic issue pattern'],
   ['peer accepted as runtime guarantee', 'lib/inspect.mjs', 'directory && installed ? await scan(directory)', 'directory && installed && acceptsTarget !== true ? await scan(directory)', 'compatible peer still scans old API'],
-  ['empty declared peer ignored', 'lib/inspect.mjs', '!request.required && !declaresPeer', '!request.required && !peer', 'custom package with declared']
+  ['empty declared peer ignored', 'lib/inspect.mjs', '!request.required && !declaresPeer', '!request.required && !peer', 'custom package with declared'],
+  ['author devDependencies included', 'lib/inspect.mjs', 'dependencyNames(installed)', 'dependencyNames(installed, true)', 'author devDependencies'],
+  ['project devDependencies excluded', 'lib/inspect.mjs', 'dependencyNames(meta, true)', 'dependencyNames(meta)', 'project devDependencies']
 ]) {
   const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'lintpreflight-mutation-'));
   try {

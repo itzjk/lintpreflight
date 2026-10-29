@@ -35,7 +35,7 @@ lintpreflight --target 10 ./your-project
 
 ## How it works
 
-lintpreflight reads the project's package.json and installed package metadata, discovers ESLint plugins, parsers and configs, then parses their JavaScript with Acorn. It checks semver peers against a precise target and matches static member accesses against a [versioned API table](lib/eslint10.mjs) sourced from the [official ESLint 10 migration guide](https://eslint.org/docs/latest/use/migrate-to-10.0.0). It never imports inspected code, loads eslint.config.js, installs packages, or contacts a service. Discovery follows dependencies of identified packages within the project; it does not evaluate which rules your configuration enables.
+lintpreflight reads the project's package.json and installed package metadata, discovers ESLint plugins, parsers and configs, then parses their JavaScript with Acorn. It checks semver peers against a precise target and matches static member accesses against a [versioned API table](lib/eslint10.mjs) sourced from the [official ESLint 10 migration guide](https://eslint.org/docs/latest/use/migrate-to-10.0.0). It never imports inspected code, loads eslint.config.js, installs packages, or contacts a service. Discovery includes the project's devDependencies, then follows dependencies, optionalDependencies and peerDependencies of identified packages within the project. Plugin authors' devDependencies are excluded. It does not evaluate which rules your configuration enables.
 
 ## Usage
 
