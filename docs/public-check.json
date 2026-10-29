@@ -1,0 +1,21 @@
+{
+  "checked": "2026-10-29 UTC",
+  "package": "eslint-plugin-react",
+  "version": "7.37.5",
+  "integrity": "sha512-Qteup0SqU15kdocexFNAJMvCJEfa2xUKNV4CC1xsVMrIIqEy3SQ/rqyxCWNzfrd3/ldy6HMlD2e0JDVpDg2qIA==",
+  "peerRange": "^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7",
+  "statuses": ["peer-blocked", "api-candidate"],
+  "filesScanned": 136,
+  "candidates": 51,
+  "evidence": {
+    "file": "lib/util/version.js",
+    "line": 31,
+    "column": 82,
+    "api": "context.getFilename",
+    "replacement": "context.filename",
+    "receiver": "contextOrFilename",
+    "kind": "call",
+    "confidence": "candidate"
+  },
+  "source": "https://registry.npmjs.org/eslint-plugin-react/7.37.5"
+}

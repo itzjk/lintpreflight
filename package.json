@@ -1,0 +1,19 @@
+{
+  "name": "lintpreflight",
+  "version": "0.1.0",
+  "description": "Find installed ESLint 10 upgrade blockers with package, file and line evidence.",
+  "type": "module",
+  "bin": { "lintpreflight": "bin/lintpreflight.mjs" },
+  "files": ["bin", "lib", "README.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test",
+    "demo:setup": "node scripts/demo-fixture.mjs",
+    "test:public": "node scripts/check-react.mjs",
+    "test:mutations": "node scripts/mutations.mjs"
+  },
+  "engines": { "node": ">=20.19.0" },
+  "keywords": ["eslint", "eslint-plugin", "migration", "static-analysis", "cli", "preflight"],
+  "repository": { "type": "git", "url": "https://github.com/itzjk/lintpreflight" },
+  "license": "MIT",
+  "dependencies": { "acorn": "8.15.0", "semver": "7.7.3" }
+}

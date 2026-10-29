@@ -1,0 +1,21 @@
+# Analysis contract
+
+Schema version 1 has a stable shape. Reports contain `target`, `ruleset`, `source`, `limits`, `packages`, `warnings`, `exitCode` and `disclaimer`. Each package contains its dependency name, installed version, project-relative `installedPath`, `peerRange`, nullable `acceptsTarget`, additive `statuses`, unknown reasons, findings and coverage. Missing or malformed peer metadata is unknown. An empty semver range accepts any stable version. Target 10 normalizes to 10.0.0, never the newest release. Other majors, partial versions and prereleases are rejected.
+
+Findings contain package-relative `file`, one-based `line` and `column`, `api`, `replacement`, `receiver`, `kind` and `confidence: candidate`. Invalid input produces `{schemaVersion: 1, error, exitCode: 3}`. Stdout is exclusively JSON in JSON mode. There are no timestamps or absolute project paths in reports, so unchanged trees give identical output.
+
+Discovery starts with dependencies, devDependencies, optionalDependencies and peerDependencies declared in package.json. Conventional eslint-plugin/config names, @eslint/js, ESLint parser names and typescript-eslint are recognized. Other direct packages are recognized when installed metadata declares an ESLint peer. Identified packages' dependencies are probed in turn, including nested npm installations and hoisted packages within the project. Unrelated helper packages without these signals are not scanned, so APIs hidden in them can be missed. An unrecognized package with unreadable metadata generates a discovery warning. Packages used only by dynamic config imports, npm aliases without identifying metadata, ancestor installations and other workspace roots are outside discovery scope. Config and parser JavaScript is scanned too.
+
+# Supported evidence
+
+The authoritative table is `lib/eslint10.mjs`, revision eslint10-2026-10-28. It covers the six context members and four SourceCode methods listed under the two removal sections of the official migration guide. Earlier removals, engine requirements, config migration and rule behavior changes are outside scope. Replacements come from that table; parserPath and getJSDocComment have no replacement there.
+
+Acorn parses current standard JavaScript as ESM, with a CJS/script fallback. It ignores comments and string content. Static dot members, literal bracket members, optional chaining, method references and object destructuring are candidates. Aliases work when the member name remains visible; no binding or type proof is claimed. All receivers are treated as ambiguous, including objects unrelated to ESLint with matching member names. Reads, writes and compatibility fallback branches can produce candidates. Dynamic computed keys, bound functions without visible members and cross-file flow are not resolved. Template expressions are code and are inspected; template text is not.
+
+# Coverage and resource policy
+
+Defaults live in the same versioned module and are emitted in JSON: 200 package probes per project; per package 10,000 directory entries, depth 20, 500 JavaScript files, 1 MiB per file, 20 MiB total source. Metadata is capped at 256 KiB. Limits are conservative fixed ceilings, not coverage goals. Reaching a scan limit, parsing failure, non-regular file or unreadable path adds a coverage error and unknown status. No scanned JavaScript is also unknown.
+
+Excluded directories are node_modules, .git, test, tests, __tests__, fixture, fixtures, __fixtures__, docs, doc, documentation, coverage, example and examples, matched case-insensitively. Test/spec JavaScript basenames and .min.js bundles are excluded. Other non-JavaScript files are listed as omitted; .ts/.tsx/.jsx/.mts/.cts source creates a gap, except .d.ts declarations. Intentional exclusions do not create unknown by themselves. Their presence still means coverage is partial.
+
+Package resolution refuses symlink components inside the project. Source traversal does not follow symlinks, even internal links. Files are opened read-only with O_NOFOLLOW and nonblocking flags; special files are rejected. Run on a stable tree: this is not a sandbox against another process replacing directories during inspection. Normal filesystem access-time bookkeeping is outside the file-content hash guarantee. Nothing is imported from inspected packages.
